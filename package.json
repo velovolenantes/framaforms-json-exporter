@@ -1,0 +1,19 @@
+{
+  "name": "framaforms-json-exporter",
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "export-form-csv-data": "testcafe chrome:headless ./lib/browse-export.ts",
+    "trim-export-file": "tail -n +3 raw_export.csv > trimmed_export.csv",
+    "split-export-file": "sed '3q;d' raw_export.csv > stolen_bikes.csv && cat trimmed_export.csv | grep \"Vélo volé\" >> stolen_bikes.csv && sed '3q;d' raw_export.csv > found_bikes.csv && cat trimmed_export.csv | grep \"Vélo trouvé\" >> found_bikes.csv",
+    "csv-to-json": "INPUT=./stolen_bikes.csv OUTPUT=./stolen_bikes.json node ./lib/csv-to-json.js && INPUT=./found_bikes.csv OUTPUT=./found_bikes.json node ./lib/csv-to-json.js",
+    "shave-json": "sed -i 's/\\\\\"//g' ./stolen_bikes.json && sed -i 's/\\\\\"//g' ./found_bikes.json",
+    "mv-to-export": "mkdir -p to-export && mv ./stolen_bikes.json ./to-export && mv ./found_bikes.json ./to-export",
+    "pipe-all": "yarn export-form-csv-data && yarn trim-export-file && yarn split-export-file && yarn csv-to-json && yarn shave-json && yarn mv-to-export"
+  },
+  "dependencies": {
+    "convert-csv-to-json": "^1.3.1",
+    "testcafe": "^1.17.1"
+  }
+}

@@ -1,3 +1,5 @@
 node_modules
 *.csv
-*.json
+*export.json
+*.log
+to-export

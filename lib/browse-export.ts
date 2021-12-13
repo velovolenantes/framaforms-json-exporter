@@ -4,7 +4,8 @@ import { writeFile } from "fs";
 const config = {
   FORM_USER: process.env.FORM_USER || "",
   FORM_PWD: process.env.FORM_PWD || "",
-  FORM_ID: process.env.FORM_ID || ""
+  FORM_ID: process.env.FORM_ID || "",
+  EXPORT_PATH: process.env.EXPORT_PATH || "./raw_export.csv"
 }
 
 const UserRole = Role("https://framaforms.org/user", async (t) => {
@@ -47,15 +48,24 @@ test("export", async (t) => {
   // selection du type de delimiter -> coma -> ,
   await t
     .click(delimiterSelect)
-    .click(delimiterOption.withAttribute("value", ","));
+    .click(delimiterOption.withAttribute("value", "|"));
 
   await t.click(formSelector("#edit-header-keys-1--2"));
 
   // ouverture du pannel pour la selection des options de champs à exporter
   await t.click(formSelector("#edit-components a.fieldset-title"))
-  await t.click(formSelector("#edit-components-info"));
-  await t.click(formSelector("#edit-components-19"));
 
+  const optionsToUnselect = [
+    "#edit-components-info",
+    "#edit-components-19", // details velo
+    "#edit-components-5", // mail
+    "#edit-components-12", // rue
+    "#edit-components-3", // photo velo
+    "#edit-components-18", // num série/bicycode
+  ]
+
+  await Promise.all(optionsToUnselect.map(async opt => await t.click(formSelector(opt))));
+  
   await t.click(formSelector("#edit-submit"));
   await t
     .navigateTo(
@@ -72,7 +82,7 @@ test("export", async (t) => {
 
         if (!downloadedFileName) false;
         const downloadedFileContent = logger.requests[0].response.body;
-        writeFile("./export.csv", downloadedFileContent, (err:any) => {
+        writeFile(config.EXPORT_PATH, downloadedFileContent, (err:any) => {
           if (err) {
             console.error(err);
             return;
